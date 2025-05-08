@@ -15,7 +15,7 @@ const TopSeller = () => {
   const dropdown = ["Choose a genre", "Business", "Fiction", "Horror", "Adventure", "Marketing"];
 
   useEffect(() => {
-    fetch(`${import.meta.env.BASE_URL}data/books.json`)
+    fetch(`${import.meta.env.BASE_URL}/books.json`)
       .then((res) => res.json())
       .then((data) => setBooks(data))
       .catch((err) => console.error("Error fetching books:", err));
