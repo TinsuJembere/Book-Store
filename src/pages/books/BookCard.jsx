@@ -12,7 +12,7 @@ const BookCard = ({ book }) => {
     const token = localStorage.getItem("token");
     if (token) {
       try {
-        const res = await fetch("http://localhost:3000/api/auth/cart", {
+        const res = await fetch("https://book-store-2eba.onrender.com/api/auth/cart", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

@@ -12,7 +12,7 @@ const Recomended = () => {
   const [books, setBooks] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/books")
+    fetch("https://book-store-2eba.onrender.com/api/books")
       .then((res) => res.json())
       .then((data) => setBooks(data))
       .catch((err) => console.error("Error fetching books:", err));

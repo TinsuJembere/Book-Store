@@ -19,7 +19,7 @@ const TopSeller = () => {
   useEffect(() => {
     setLoading(true);
     setError(null);
-    fetch("http://localhost:3000/api/books", {
+    fetch("https://book-store-2eba.onrender.com/api/books", {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
