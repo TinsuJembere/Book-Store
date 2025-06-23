@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { HiBars3CenterLeft } from "react-icons/hi2";
 import { IoIosSearch } from "react-icons/io";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AiOutlineUser } from "react-icons/ai";
 import avatarImg from "../assets/avatar.png";
 import { FiHeart } from "react-icons/fi";
@@ -10,10 +10,27 @@ import { useSelector } from "react-redux";
 
 function Navbar() {
   const [isDropDownOpen, setIsDropDownOpen] = useState(false);
-  const currentUser = false;
+  const [currentUser, setCurrentUser] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    if (user) {
+      setCurrentUser(JSON.parse(user));
+    } else {
+      setCurrentUser(null);
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setCurrentUser(null);
+    setIsDropDownOpen(false);
+    navigate("/login");
+  };
+
   const navigation = [
-    { name: "Dashboard", href: "/dashboard" },
-    { name: "Orders", href: "/orders" },
     { name: "Cart", href: "/cart" },
     { name: "Check Out", href: "/checkout" },
   ];
@@ -50,6 +67,7 @@ function Navbar() {
                 {isDropDownOpen && (
                   <div className="absolute right-0 mt-2 w-45 rounded-md bg-white shadow-lg z-40">
                     <ul className="py-2">
+                      <li className="px-6 py-2 text-sm text-gray-700">{currentUser.email}</li>
                       {navigation.map((item) => (
                         <li key={item.href}>
                           <Link
@@ -61,6 +79,14 @@ function Navbar() {
                           </Link>
                         </li>
                       ))}
+                      <li>
+                        <button
+                          onClick={handleLogout}
+                          className="block w-full text-left px-6 py-2 text-sm text-red-600 hover:bg-gray-100"
+                        >
+                          Logout
+                        </button>
+                      </li>
                     </ul>
                   </div>
                 )}

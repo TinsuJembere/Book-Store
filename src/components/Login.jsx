@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { FaGoogle } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
 const Login = () => {
@@ -10,8 +10,30 @@ const Login = () => {
     formState: { errors },
   } = useForm();
 
-  const onSubmit = (data) => console.log(data);
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
+
+  const onSubmit = async (data) => {
+    setMessage("");
+    try {
+      const res = await fetch("http://localhost:3000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const result = await res.json();
+      if (res.ok) {
+        localStorage.setItem("token", result.token);
+        localStorage.setItem("user", JSON.stringify(result.user));
+        setMessage("");
+        navigate("/Book-Store");
+      } else {
+        setMessage(result.message || "Login failed.");
+      }
+    } catch (err) {
+      setMessage("Server error. Please try again later.");
+    }
+  };
 
   return (
     <div className="min-h-[calc(100vh-120px)] flex flex-col items-center justify-center">

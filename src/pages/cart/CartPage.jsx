@@ -1,20 +1,77 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import getImg from "../../utils/getImg";
 import { clearCart, removeFromCart } from "../../redux/features/cart/cartSlice";
 
 const CartPage = () => {
-  const cartItems = useSelector((state) => state.cart.cartItems);
-  const totalPrice = cartItems.reduce((acc, book) => acc + book.newPrice, 0)
-  const dispatch = useDispatch()
+  const reduxCartItems = useSelector((state) => state.cart.cartItems);
+  const dispatch = useDispatch();
+  const [serverCart, setServerCart] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      fetch("http://localhost:3000/api/auth/cart", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.cart) {
+            setServerCart(data.cart);
+          }
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+  }, []);
+
+  const cartItems = serverCart
+    ? serverCart.map((item) => ({ ...item.book, quantity: item.quantity }))
+    : reduxCartItems;
+  const totalPrice = cartItems.reduce((acc, book) => acc + (book.newPrice * (book.quantity || 1)), 0);
 
   const handleRemove = (book) => {
-    dispatch(removeFromCart(book))
-  }
-  const handleClearCart = (book) => {
-    dispatch(clearCart())
-  }
+    const token = localStorage.getItem("token");
+    if (serverCart && token) {
+      fetch("http://localhost:3000/api/auth/cart", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ bookId: book._id }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.cart) setServerCart(data.cart);
+        });
+    } else {
+      dispatch(removeFromCart(book));
+    }
+  };
+  const handleClearCart = () => {
+    const token = localStorage.getItem("token");
+    if (serverCart && token) {
+      fetch("http://localhost:3000/api/auth/cart/all", {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.cart) setServerCart(data.cart);
+        });
+    } else {
+      dispatch(clearCart());
+    }
+  };
+
+  if (loading) return <div className="text-center py-10">Loading cart...</div>;
 
   return (
     <>
@@ -27,7 +84,7 @@ const CartPage = () => {
             <div className="ml-3 flex h-7 items-center ">
               <button
                 type="button"
-                onClick={()=>handleClearCart()}
+                onClick={() => handleClearCart()}
                 className="relative -m-2 py-1 px-2 cursor-pointer bg-red-500 text-white rounded-md hover:bg-secondary transition-all duration-200"
               >
                 <span>Clear Cart</span>
@@ -39,8 +96,8 @@ const CartPage = () => {
             <div className="flow-root">
               <ul role="list" className="-my-6 divide-y divide-gray-200">
                 {cartItems.length > 0 ? (
-                  cartItems.map((book) => (
-                    <li key={book.id} className="flex py-6">
+                  cartItems.map((book, idx) => (
+                    <li key={book._id || book.id || idx} className="flex py-6">
                       <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
                         <img
                           alt={book.title || "Book cover"}
@@ -63,12 +120,12 @@ const CartPage = () => {
                         </div>
                         <div className="flex flex-1 flex-wrap items-end justify-between space-y-2 text-sm">
                           <p className="text-gray-500">
-                            <strong>Quantity: </strong>1
+                            <strong>Quantity: </strong>{book.quantity || 1}
                           </p>
 
                           <div className="flex">
                             <button
-                            onClick={() => handleRemove(book)}
+                              onClick={() => handleRemove(book)}
                               type="button"
                               className="font-medium cursor-pointer text-indigo-600 hover:text-indigo-500"
                             >

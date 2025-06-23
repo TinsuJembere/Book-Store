@@ -11,20 +11,53 @@ import "swiper/css/navigation";
 const TopSeller = () => {
   const [books, setBooks] = useState([]);
   const [category, setCategory] = useState("Choose a genre");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const dropdown = ["Choose a genre", "Business", "Fiction", "Horror", "Adventure", "Marketing"];
 
   useEffect(() => {
-    fetch(`${import.meta.env.BASE_URL}/books.json`)
-      .then((res) => res.json())
-      .then((data) => setBooks(data))
-      .catch((err) => console.error("Error fetching books:", err));
+    setLoading(true);
+    setError(null);
+    fetch("http://localhost:3000/api/books", {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (!Array.isArray(data)) {
+          throw new Error('Expected an array of books');
+        }
+        setBooks(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching books:", err);
+        setError("Failed to load books. Please try again later.");
+        setLoading(false);
+      });
   }, []);
 
   const filteredBook =
     category === "Choose a genre"
       ? books
       : books.filter((book) => book.category?.toLowerCase() === category.toLowerCase());
+
+  if (loading) {
+    return <div className="text-center py-10">Loading books...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center py-10 text-red-500">{error}</div>;
+  }
 
   return (
     <div className="py-10">

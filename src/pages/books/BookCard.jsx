@@ -8,8 +8,32 @@ import { addToCart } from "../../redux/features/cart/cartSlice";
 const BookCard = ({ book }) => {
   const dispatch = useDispatch();
 
-  const handleAddToCart = () => {
-    dispatch(addToCart(book));
+  const handleAddToCart = async () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const res = await fetch("http://localhost:3000/api/auth/cart", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ bookId: book._id }),
+        });
+        const result = await res.json();
+        if (res.ok) {
+          // Optionally update Redux cart or show a success message
+          dispatch(addToCart(book));
+        } else {
+          alert(result.message || "Failed to add to cart");
+        }
+      } catch (err) {
+        alert("Server error. Please try again later.");
+      }
+    } else {
+      // Not logged in, use Redux cart as guest
+      dispatch(addToCart(book));
+    }
   };
   return (
     <div className=" rounded-lg transition-shadow duration-300">

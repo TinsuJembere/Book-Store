@@ -10,8 +10,29 @@ const Register = () => {
     formState: { errors },
   } = useForm();
 
-  const onSubmit = (data) => console.log(data);
   const [message, setMessage] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  const onSubmit = async (data) => {
+    setMessage("");
+    setSuccess(false);
+    try {
+      const res = await fetch("http://localhost:3000/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const result = await res.json();
+      if (res.ok) {
+        setSuccess(true);
+        setMessage("Registration successful! You can now log in.");
+      } else {
+        setMessage(result.message || "Registration failed.");
+      }
+    } catch (err) {
+      setMessage("Server error. Please try again later.");
+    }
+  };
 
   return (
     <div className="min-h-[calc(100vh-120px)] flex flex-col items-center justify-center">
@@ -46,7 +67,7 @@ const Register = () => {
             <p className="text-red-500 text-xs italic">Password is required</p>
           )}
 
-          {message && <p className="text-red-500 text-xs italic mb-3">{message}</p>}
+          {message && <p className={success ? "text-green-500 text-xs italic mb-3" : "text-red-500 text-xs italic mb-3"}>{message}</p>}
 
           <button className="text-white rounded-md bg-blue-700 w-fit px-6 py-1 mt-3 mb-3">
             Register
